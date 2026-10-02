@@ -7,7 +7,8 @@
 enum class TransactionState {
     STARTED,
     COMMITTED,
-    RECOVERY_REQUIRED
+    RECOVERY_REQUIRED,
+    RECOVERED
 };
 
 struct Transaction {
@@ -17,5 +18,6 @@ struct Transaction {
 };
 
 bool appendTransaction(const Transaction& transaction); 
+bool detectIncompleteTransaction(int transactionId);
 
 #endif
