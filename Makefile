@@ -1,12 +1,12 @@
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Wextra -Wpedantic
+CXXFLAGS = -std=c++17 -Wall -Wextra -Wpedantic -Iinclude
 TARGET = storageguard
-SOURCE = src/main.cpp
+SOURCES = src/main.cpp src/journal.cpp
 
 all: $(TARGET)
 
-$(TARGET): $(SOURCE)
-	$(CXX) $(CXXFLAGS) $(SOURCE) -o $(TARGET)
+$(TARGET): $(SOURCES) include/journal.h
+	$(CXX) $(CXXFLAGS) $(SOURCES) -o $(TARGET)
 
 clean:
 	rm -f $(TARGET)

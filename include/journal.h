@@ -16,4 +16,6 @@ struct Transaction {
     TransactionState state;
 };
 
+bool appendTransaction(const Transaction& transaction); 
+
 #endif

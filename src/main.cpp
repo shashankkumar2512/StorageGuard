@@ -1,9 +1,18 @@
 #include <iostream>
+#include "journal.h"
 
 int main() {
-    std::cout << "StorageGuard\n";
-    std::cout << "Linux Crash-Recovery Analyzer\n";
-    std::cout << "Prototype initialized successfully\n";
+    Transaction transaction{
+        1,
+        "CREATE_FILE",
+        TransactionState::STARTED
+    };
 
+    if (!appendTransaction(transaction)) {
+        std::cerr << "Error: Could not write to journal.\n";
+        return 1;
+    }
+
+    std::cout << "Transaction recorded successfully.\n";
     return 0;
 }
