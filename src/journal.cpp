@@ -35,6 +35,7 @@ bool appendTransaction(const Transaction& transaction) {
     return journal.good();
 }
 
+
 bool detectIncompleteTransaction(int transactionId) {
     std::ifstream journal("storageguard.log");
 
@@ -44,13 +45,11 @@ bool detectIncompleteTransaction(int transactionId) {
 
     std::string line;
     bool started = false;
-    bool committed = false;
+    bool completed = false;
 
     while (std::getline(journal, line)) {
         std::stringstream ss(line);
-        std::string idText;
-        std::string operation;
-        std::string state;
+        std::string idText, operation, state;
 
         std::getline(ss, idText, '|');
         std::getline(ss, operation, '|');
@@ -66,11 +65,13 @@ bool detectIncompleteTransaction(int transactionId) {
 
         if (state == "STARTED") {
             started = true;
-            committed = false;
-        } else if (state == "COMMITTED") {
-            committed = true;
+            completed = false;
+        } else if (state == "COMMITTED" || state == "RECOVERED") {
+            completed = true;
+        } else if (state == "RECOVERY_REQUIRED") {
+            completed = false;
         }
     }
 
-    return started && !committed;
+    return started && !completed;
 }
