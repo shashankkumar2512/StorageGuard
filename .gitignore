@@ -1,2 +1,4 @@
 storageguard
+test_journal
+storageguard.log
 *.o
