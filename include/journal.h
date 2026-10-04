@@ -17,7 +17,14 @@ struct Transaction {
     TransactionState state;
 };
 
-bool appendTransaction(const Transaction& transaction); 
+bool appendTransaction(const Transaction& transaction,
+                       bool forwardToDriver = true);
+
 bool detectIncompleteTransaction(int transactionId);
+
+bool isTransactionCompleted(int transactionId,
+                            const std::string& operation);
+
+int getNextTransactionId();
 
 #endif

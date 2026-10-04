@@ -1,4 +1,24 @@
-storageguard
-test_journal
-storageguard.log
-*.o
+# Main executable and test binaries
+/storageguard
+/driver_client
+/test_journal
+/test_recovery
+/test_crash_recovery
+/test_driver_failure
+
+# Log files
+*.log
+
+# Linux kernel module build artifacts
+/driver/*.o
+/driver/*.ko
+/driver/*.mod
+/driver/*.mod.c
+/driver/.*.cmd
+/driver/Module.symvers
+/driver/modules.order
+
+# Temporary files
+*.tmp
+*.swp
+*~

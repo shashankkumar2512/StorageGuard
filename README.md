@@ -1,75 +1,52 @@
-
 # StorageGuard
-### Linux-Based Crash-Consistency, Journaling and Filesystem Recovery Analyzer
 
-StorageGuard is a C++17 academic project that demonstrates transaction journaling, incomplete-operation detection, and controlled recovery simulation in Linux. It also includes a Linux character-device driver prototype intended to demonstrate basic user-space and kernel-space communication.
+### Crash-Consistent Embedded Filesystem, Journaling & Recovery Analyzer
 
-**Project status:** The user-space journal simulation and its three automated tests have been verified. The kernel driver builds, but loading it has not been verified successfully because of a kernel symbol-version mismatch.
+StorageGuard is a Linux-based C++17 academic project that demonstrates transaction journaling, incomplete transaction detection, crash-recovery simulation, journal validation, and communication with a Linux character device.
+
+**Project status:** Automated application tests pass, and the kernel character device has passed a real user-space read/write round-trip test in WSL2.
 
 ## Features
 
-- **Transaction Journaling:** Records transaction IDs, operation names, and states in a journal.
-- **Incomplete Transaction Detection:** Identifies transactions that started but lack a subsequent completion record.
-- **Recovery Simulation:** Demonstrates cleanup of a simulated partially created file in a controlled test directory.
-- **Recovery Status Tracking:** Supports `STARTED`, `COMMITTED`, `RECOVERY_REQUIRED`, and `RECOVERED` states.
-- **Automated Tests:** Tests committed, incomplete, and recovered transaction detection.
-- **Character-Device Driver Prototype:** Includes source code for a Linux character device with basic read/write operations.
-- **Linux Development:** Uses C++17, GNU Make, and Linux kernel module interfaces.
+- **Transaction Journaling:** Records transaction IDs, operation names, and transaction states.
+- **Incomplete Transaction Detection:** Identifies transactions that require recovery.
+- **Crash Simulation:** Tests recovery after simulated interruptions at multiple transaction stages.
+- **Recovery and Rollback:** Cleans up controlled test data associated with incomplete transactions.
+- **Journal Validation:** Rejects malformed entries and invalid transaction-state transitions.
+- **Concurrent Journal Testing:** Tests competing transaction-state updates.
+- **Character-Device Communication:** Demonstrates user-space and kernel-space communication through `/dev/storageguard`.
+- **Automated Testing:** Includes journal, recovery, crash-recovery, concurrency, and driver-related tests.
 
-## Technologies Used
+## Technologies
 
 - C++17
-- Linux / Ubuntu on WSL2
-- GCC/G++
-- GNU Make
-- Linux kernel module interfaces (C)
+- C and Linux kernel module interfaces
+- Ubuntu on WSL2
+- GCC/G++, GNU Make
 - Git and GitHub
 
 ## Project Structure
 
 ```text
 StorageGuard/
-├── include/
-│   └── journal.h
-├── src/
-│   ├── main.cpp
-│   └── journal.cpp
-├── tests/
-│   └── test_journal.cpp
-├── driver/
-│   ├── Makefile
-│   └── storageguard_driver.c
-├── test_data/
+├── include/       # Journal, recovery, and driver-client headers
+├── src/           # Application, journaling, recovery, driver client
+├── tests/         # Automated tests
+├── driver/        # Linux character-device driver
+├── test_data/     # Controlled test data
 ├── Makefile
 ├── .gitignore
 └── README.md
 ```
 
-## How It Works
-
-1. A transaction is recorded with the `STARTED` state.
-2. A completed operation is recorded with the `COMMITTED` state.
-3. The journal is scanned for transactions that started but have no later completion or recovery record.
-4. The application simulates an interrupted operation using controlled test data.
-5. The simulation removes the partial test file and records the `RECOVERED` state.
-
-Example journal records:
-
-```text
-100|CREATE_FILE|STARTED
-100|CREATE_FILE|RECOVERED
-```
-
-Each record contains a transaction ID, operation name, and state separated by `|`.
-
 ## Prerequisites
 
-- Linux or Ubuntu on WSL2
+- Ubuntu or another compatible Linux environment
 - GCC/G++ with C++17 support
 - GNU Make
-- Git (for cloning the repository)
+- Linux kernel headers matching the running kernel for driver builds
 
-Install the basic tools on Ubuntu:
+Install the basic tools:
 
 ```bash
 sudo apt update
@@ -91,13 +68,13 @@ Build the application:
 make
 ```
 
-Run the simulation:
+Run StorageGuard:
 
 ```bash
 ./storageguard
 ```
 
-View the journal:
+Inspect the journal, if generated:
 
 ```bash
 cat storageguard.log
@@ -105,60 +82,46 @@ cat storageguard.log
 
 ## Automated Tests
 
-Run:
+Run the application tests:
 
 ```bash
 make test
 ```
 
-The tests verify:
-
-- A committed transaction is not reported as incomplete.
-- An incomplete transaction is detected.
-- A recovered transaction is not reported as incomplete.
-
-Expected output:
-
-```text
-PASS: Committed transaction detected correctly.
-PASS: Incomplete transaction detected correctly.
-PASS: Recovered transaction detected correctly.
-```
-
-## Driver Prototype
-
-The `driver/` directory contains a Linux character-device driver prototype.
-
-Build instructions, for a compatible configured kernel build tree:
+Build and run the driver-client test:
 
 ```bash
-make -C /path/to/kernel/build M="$PWD/driver" modules
+make driver-test
 ```
 
-The kernel build tree must match the running kernel, including its configuration and symbol-version information. The module has previously built but failed to load in the current WSL2 environment because of a `module_layout` symbol-version mismatch.
+The test suite covers journal state handling, incomplete transaction recovery, crash-recovery scenarios, malformed journal rejection, concurrent journal updates, and driver-related error handling.
 
-**Driver status:** Successful loading and read/write testing remain unverified. The current user-space application does not communicate with the driver.
+## Kernel Character Device
+
+The driver source is located in `driver/storageguard_driver.c`. When the module is built for a compatible kernel and loaded successfully, it exposes `/dev/storageguard`.
+
+The current WSL2 environment has successfully loaded the driver, and a real read/write round-trip test verified that a message written from user space could be read back correctly.
+
+Driver build instructions depend on the kernel build tree matching the running kernel. For example:
+
+```bash
+make -C /lib/modules/$(uname -r)/build M="$PWD/driver" modules
+```
+
+Loading kernel modules may require elevated privileges and a compatible WSL2 kernel configuration.
 
 ## Limitations
 
-- This project demonstrates application-level journaling and simulated recovery, not actual filesystem repair.
-- Recovery is limited to controlled test data.
-- Tests validate journal-state detection; they do not simulate actual power loss or kernel crashes.
-- The driver is a prototype and has not been successfully loaded and tested in the current environment.
-- The project does not guarantee recovery from real filesystem failures.
-
-## Future Improvements
-
-- Add tests for malformed journal entries and repeated transaction IDs.
-- Improve transaction-state validation and recovery error handling.
-- Resolve kernel module compatibility and verify driver loading.
-- Add and test user-space communication with the character device.
-- Extend the simulation with more realistic crash scenarios.
+- StorageGuard simulates recovery in controlled test data; it does not repair an actual host filesystem.
+- Crash tests simulate interruption at defined application stages rather than actual power loss.
+- The character device is a prototype and uses a limited shared buffer.
+- Recovery is not a guarantee against every possible crash or storage failure.
+- Driver availability depends on kernel compatibility and environment configuration.
 
 ## Author
 
 **Shashank Kumar**  
-B.Tech – Computer Science and Engineering
+B.Tech, Computer Science and Engineering
 
 ## License
 
